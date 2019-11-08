@@ -48,7 +48,8 @@ func ReduceApplicationState(state State, action Action) State {
 }
 
 func TestStore(test *testing.T) {
-	store := CreateStore(ReduceApplicationState)
+	store := CreateStore(ReduceApplicationState).
+		ApplyMiddleware()
 
 	state1 := store.GetState()
 
