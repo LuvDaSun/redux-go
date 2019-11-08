@@ -47,18 +47,42 @@ func ReduceApplicationState(state State, action Action) State {
 	return state
 }
 
+func CreateNoopMiddleware() Middleware {
+	return func(getState GetState, dispatch Dispatch) Chain {
+		return func(next Dispatch) Dispatch {
+			return func(action Action) {
+				next(action)
+			}
+		}
+	}
+}
+
 func TestStore(test *testing.T) {
-	store := CreateStore(ReduceApplicationState).
-		ApplyMiddleware()
+	store := CreateStore(ReduceApplicationState)
 
 	state1 := store.GetState()
 
 	store.Dispatch(IncrementAction{})
-
 	state2 := store.GetState()
 
 	store.Dispatch(DecrementAction{})
+	state3 := store.GetState()
 
+	assert.NotEqual(test, state1, state2)
+	assert.NotEqual(test, state2, state3)
+	assert.Equal(test, state3, state1)
+}
+
+func TestStoreWithMiddleware(test *testing.T) {
+	store := CreateStore(ReduceApplicationState).
+		ApplyMiddleware(CreateNoopMiddleware())
+
+	state1 := store.GetState()
+
+	store.Dispatch(IncrementAction{})
+	state2 := store.GetState()
+
+	store.Dispatch(DecrementAction{})
 	state3 := store.GetState()
 
 	assert.NotEqual(test, state1, state2)
