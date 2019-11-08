@@ -10,7 +10,7 @@ type ApplicationState struct {
 	counter int
 }
 
-func (state ApplicationState) selectCounter() int {
+func (state ApplicationState) SelectCounter() int {
 	return state.counter
 }
 
