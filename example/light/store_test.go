@@ -1,6 +1,7 @@
 package light
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/LuvDaSun/redux-go/redux"
@@ -30,4 +31,23 @@ func Test(test *testing.T) {
 	assert.Equal(test, true, state2.SelectLightIsOn())
 	assert.Equal(test, false, state3.SelectLightIsOn())
 	assert.Equal(test, true, state4.SelectLightIsOn())
+
+	var wg sync.WaitGroup
+
+	job := func() {
+		for range [1000]int{} {
+			store.Dispatch(ToggleAction{})
+		}
+		wg.Done()
+	}
+
+	wg.Add(1000)
+	for range [1000]int{} {
+		go job()
+	}
+
+	wg.Wait()
+
+	state5 := store.GetState().(*ApplicationState)
+	assert.Equal(test, true, state5.SelectLightIsOn())
 }

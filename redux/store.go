@@ -11,6 +11,7 @@ type Store struct {
 	state           State
 	dispatchHandler DispatchHandler
 	stateMutex      *sync.Mutex
+	dispatchMutex   *sync.Mutex
 }
 
 /*
@@ -28,6 +29,7 @@ func CreateStore(initalState State, reducer Reducer) *Store {
 		initalState,
 		dispatchHandler,
 		&sync.Mutex{},
+		&sync.Mutex{},
 	}
 }
 
@@ -35,6 +37,9 @@ func CreateStore(initalState State, reducer Reducer) *Store {
 Dispatch dispatches action
 */
 func (store *Store) Dispatch(action Action) {
+	store.dispatchMutex.Lock()
+	defer store.dispatchMutex.Unlock()
+
 	store.dispatchHandler(store, action)
 }
 
