@@ -5,6 +5,29 @@ import (
 )
 
 /*
+Action is a value that is dispatched to the redux store
+*/
+type Action interface{}
+
+/*
+Reducer will reduce a state and an action to a next state
+*/
+type Reducer func(State, Action) State
+
+/*
+State is the state of a redux store
+*/
+type State interface{}
+
+/*
+DispatchHandler will handle every dispatch
+*/
+type DispatchHandler func(
+	store *Store,
+	action Action,
+)
+
+/*
 Store is a redux store
 */
 type Store struct {
