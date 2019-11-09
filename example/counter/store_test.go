@@ -34,19 +34,19 @@ func Test(test *testing.T) {
 	var wg sync.WaitGroup
 
 	job := func() {
-		for range [100]int{} {
+		for range [1000]int{} {
 			store.Dispatch(IncrementAction{})
 		}
 		wg.Done()
 	}
 
-	wg.Add(10)
-	for range [10]int{} {
+	wg.Add(1000)
+	for range [1000]int{} {
 		go job()
 	}
 
 	wg.Wait()
 
 	state5 := store.GetState().(*ApplicationState)
-	assert.Equal(test, 1+10*100, state5.SelectCounter())
+	assert.Equal(test, 1+1000*1000, state5.SelectCounter())
 }
