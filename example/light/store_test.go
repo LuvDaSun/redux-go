@@ -8,6 +8,10 @@ import (
 )
 
 func Test(test *testing.T) {
+	const count1 = 10
+	const count2 = 100
+	const count3 = 1000
+
 	store := CreateApplicationStore()
 
 	state1 := store.GetState().(*ApplicationState)
@@ -26,18 +30,18 @@ func Test(test *testing.T) {
 	assert.Equal(test, false, state3.SelectLightIsOn())
 	assert.Equal(test, true, state4.SelectLightIsOn())
 
-	for range [100]int{} {
+	for range [count1]int{} {
 		var wg sync.WaitGroup
 
 		job := func() {
-			for range [100]int{} {
+			for range [count2]int{} {
 				store.Dispatch(&ToggleAction{})
 			}
 			wg.Done()
 		}
 
-		wg.Add(100)
-		for range [100]int{} {
+		wg.Add(count3)
+		for range [count3]int{} {
 			go job()
 		}
 

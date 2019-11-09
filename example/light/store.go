@@ -10,7 +10,8 @@ func CreateApplicationStore() *redux.Store {
 		return ReduceApplicationState(state.(*ApplicationState), action)
 	}
 
-	store := redux.CreateStore(InitialApplicationState, reducer)
+	store := redux.CreateStore(InitialApplicationState, reducer).
+		ApplyMiddleware(CreateToggleMiddleware())
 
 	return store
 }
