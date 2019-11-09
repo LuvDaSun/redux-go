@@ -16,9 +16,7 @@ type Store struct {
 /*
 CreateStore creates a store
 */
-func CreateStore(reducer Reducer) *Store {
-	state := reducer(nil, nil)
-
+func CreateStore(initalState State, reducer Reducer) *Store {
 	dispatchHandler := func(store *Store, action Action) {
 		store.mutex.Lock()
 		defer store.mutex.Unlock()
@@ -27,7 +25,7 @@ func CreateStore(reducer Reducer) *Store {
 	}
 
 	return &Store{
-		state,
+		initalState,
 		dispatchHandler,
 		sync.Mutex{},
 	}
