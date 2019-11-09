@@ -5,19 +5,20 @@ Store is a redux store
 */
 type Store struct {
 	state           State
-	reducer         Reducer
 	dispatchHandler DispatchHandler
 }
 
 /*
 CreateStore creates a store
 */
-func CreateStore(reducer Reducer) Store {
-	state := reducer(nil, nil)
-	return Store{
-		state,
-		reducer,
-		defaultDispatchHandler,
+func CreateStore(initalState State, reducer Reducer) *Store {
+	dispatchHandler := func(store *Store, action Action) {
+		store.state = reducer(store.state, action)
+	}
+
+	return &Store{
+		initalState,
+		dispatchHandler,
 	}
 }
 
