@@ -11,15 +11,13 @@ type Store struct {
 /*
 CreateStore creates a store
 */
-func CreateStore(reducer Reducer) *Store {
-	state := reducer(nil, nil)
-
+func CreateStore(initalState State, reducer Reducer) *Store {
 	dispatchHandler := func(store *Store, action Action) {
 		store.state = reducer(store.state, action)
 	}
 
 	return &Store{
-		state,
+		initalState,
 		dispatchHandler,
 	}
 }
