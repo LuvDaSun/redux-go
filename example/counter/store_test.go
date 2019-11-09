@@ -4,16 +4,11 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/LuvDaSun/redux-go/redux"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test(test *testing.T) {
-	reducer := func(state redux.State, action redux.Action) redux.State {
-		return ReduceApplicationState(state.(*ApplicationState), action)
-	}
-
-	store := redux.CreateStore(InitialApplicationState, reducer)
+	store := CreateApplicationStore()
 
 	state1 := store.GetState().(*ApplicationState)
 
