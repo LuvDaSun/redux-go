@@ -11,6 +11,7 @@ func Test(test *testing.T) {
 	const count = 1000
 
 	store := CreateApplicationStore()
+	store.Dispatch(nil)
 
 	state1 := store.GetState().(*ApplicationState)
 
