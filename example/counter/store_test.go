@@ -17,13 +17,13 @@ func Test(test *testing.T) {
 
 	state1 := store.GetState().(*ApplicationState)
 
-	store.Dispatch(IncrementAction{})
+	store.Dispatch(&IncrementAction{})
 	state2 := store.GetState().(*ApplicationState)
 
-	store.Dispatch(IncrementAction{})
+	store.Dispatch(&IncrementAction{})
 	state3 := store.GetState().(*ApplicationState)
 
-	store.Dispatch(DecrementAction{})
+	store.Dispatch(&DecrementAction{})
 	state4 := store.GetState().(*ApplicationState)
 
 	assert.Equal(test, 0, state1.SelectCounter())
@@ -35,7 +35,7 @@ func Test(test *testing.T) {
 
 	job := func() {
 		for range [1000]int{} {
-			store.Dispatch(IncrementAction{})
+			store.Dispatch(&IncrementAction{})
 		}
 		wg.Done()
 	}

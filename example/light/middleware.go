@@ -21,12 +21,12 @@ func CreateToggleMiddleware() redux.Middleware {
 				next(action)
 
 				switch action.(type) {
-				case ToggleAction:
+				case *ToggleAction:
 					state := getState().(*ApplicationState)
 					if state.SelectLightIsOn() {
-						dispatch(SwitchOffAction{})
+						dispatch(&SwitchOffAction{})
 					} else {
-						dispatch(SwitchOnAction{})
+						dispatch(&SwitchOnAction{})
 					}
 				}
 

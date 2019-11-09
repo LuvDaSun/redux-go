@@ -18,13 +18,13 @@ func Test(test *testing.T) {
 
 	state1 := store.GetState().(*ApplicationState)
 
-	store.Dispatch(SwitchOnAction{})
+	store.Dispatch(&SwitchOnAction{})
 	state2 := store.GetState().(*ApplicationState)
 
-	store.Dispatch(SwitchOffAction{})
+	store.Dispatch(&SwitchOffAction{})
 	state3 := store.GetState().(*ApplicationState)
 
-	store.Dispatch(ToggleAction{})
+	store.Dispatch(&ToggleAction{})
 	state4 := store.GetState().(*ApplicationState)
 
 	assert.Equal(test, false, state1.SelectLightIsOn())
@@ -37,7 +37,7 @@ func Test(test *testing.T) {
 
 		job := func() {
 			for range [100]int{} {
-				store.Dispatch(ToggleAction{})
+				store.Dispatch(&ToggleAction{})
 			}
 			wg.Done()
 		}

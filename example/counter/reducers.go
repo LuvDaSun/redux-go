@@ -22,12 +22,12 @@ ReduceApplicationState reduces application state
 func ReduceApplicationState(state *ApplicationState, action redux.Action) *ApplicationState {
 	switch action.(type) {
 
-	case IncrementAction:
+	case *IncrementAction:
 		return &ApplicationState{
 			counter: state.counter + 1,
 		}
 
-	case DecrementAction:
+	case *DecrementAction:
 		return &ApplicationState{
 			counter: state.counter - 1,
 		}

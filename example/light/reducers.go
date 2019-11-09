@@ -22,12 +22,12 @@ ReduceApplicationState will reduce application state
 func ReduceApplicationState(state *ApplicationState, action redux.Action) *ApplicationState {
 	switch action.(type) {
 
-	case SwitchOnAction:
+	case *SwitchOnAction:
 		return &ApplicationState{
 			isOn: true,
 		}
 
-	case SwitchOffAction:
+	case *SwitchOffAction:
 		return &ApplicationState{
 			isOn: false,
 		}
