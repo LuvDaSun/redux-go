@@ -1,6 +1,7 @@
 package counter
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/LuvDaSun/redux-go/redux"
@@ -29,4 +30,23 @@ func Test(test *testing.T) {
 	assert.Equal(test, 1, state2.SelectCounter())
 	assert.Equal(test, 2, state3.SelectCounter())
 	assert.Equal(test, 1, state4.SelectCounter())
+
+	var wg sync.WaitGroup
+
+	job := func() {
+		for range [100]int{} {
+			store.Dispatch(IncrementAction{})
+		}
+		wg.Done()
+	}
+
+	wg.Add(10)
+	for range [10]int{} {
+		go job()
+	}
+
+	wg.Wait()
+
+	state5 := store.GetState().(*ApplicationState)
+	assert.Equal(test, 1+10*100, state5.SelectCounter())
 }

@@ -10,7 +10,7 @@ Store is a redux store
 type Store struct {
 	state           State
 	dispatchHandler DispatchHandler
-	mutex           sync.Mutex
+	stateMutex      *sync.Mutex
 }
 
 /*
@@ -18,8 +18,8 @@ CreateStore creates a store
 */
 func CreateStore(initalState State, reducer Reducer) *Store {
 	dispatchHandler := func(store *Store, action Action) {
-		store.mutex.Lock()
-		defer store.mutex.Unlock()
+		store.stateMutex.Lock()
+		defer store.stateMutex.Unlock()
 
 		store.state = reducer(store.state, action)
 	}
@@ -27,7 +27,7 @@ func CreateStore(initalState State, reducer Reducer) *Store {
 	return &Store{
 		initalState,
 		dispatchHandler,
-		sync.Mutex{},
+		&sync.Mutex{},
 	}
 }
 
@@ -42,8 +42,8 @@ func (store *Store) Dispatch(action Action) {
 GetState gets snapshot of state
 */
 func (store *Store) GetState() State {
-	store.mutex.Lock()
-	defer store.mutex.Unlock()
+	store.stateMutex.Lock()
+	defer store.stateMutex.Unlock()
 
 	return store.state
 }
