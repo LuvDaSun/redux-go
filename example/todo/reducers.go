@@ -1,6 +1,9 @@
 package todo
 
-import "github.com/LuvDaSun/redux-go/redux"
+import (
+	"github.com/LuvDaSun/redux-go/redux"
+	iradix "github.com/hashicorp/go-immutable-radix"
+)
 
 /*
 ApplicationState state
@@ -37,14 +40,14 @@ type TaskItem struct {
 TaskState state
 */
 type TaskState struct {
-	taskMap map[string]*TaskItem
+	items *iradix.Tree
 }
 
 /*
 InitialTaskState initial todo state
 */
 var InitialTaskState = &TaskState{
-	taskMap: make(map[string]*TaskItem),
+	items: iradix.New(),
 }
 
 /*
@@ -53,45 +56,46 @@ ReduceTaskState reduces todo state
 func ReduceTaskState(state *TaskState, action redux.Action) *TaskState {
 	switch a := action.(type) {
 	case *AddTaskItemAction:
-		nextState := &TaskState{
-			taskMap: make(map[string]*TaskItem, len(state.taskMap)+1),
-		}
-		for k, v := range state.taskMap {
-			nextState.taskMap[k] = v
-		}
-		nextState.taskMap[a.id] = &TaskItem{
+		key := []byte(a.id)
+		item := &TaskItem{
 			name:     a.name,
 			complete: false,
 		}
-		return nextState
+		items, _, exists := state.items.Insert(key, item)
+		if exists {
+			panic("task existed")
+		}
+		return &TaskState{
+			items: items,
+		}
 
 	case *CompleteTaskItemAction:
-		nextState := &TaskState{
-			taskMap: make(map[string]*TaskItem, len(state.taskMap)),
+		key := []byte(a.id)
+		itemRaw, exists := state.items.Get(key)
+		if !exists {
+			panic("task did not existed")
 		}
-		for k, v := range state.taskMap {
-			if k == a.id {
-				nextState.taskMap[k] = &TaskItem{
-					name:     v.name,
-					complete: true,
-				}
-				continue
-			}
-			nextState.taskMap[k] = v
+		item := itemRaw.(*TaskItem)
+		items, _, exists := state.items.Insert(key, &TaskItem{
+			name:     item.name,
+			complete: true,
+		})
+		if !exists {
+			panic("task did not existed")
 		}
-		return nextState
+		return &TaskState{
+			items: items,
+		}
 
 	case *RemoveTaskItemAction:
-		nextState := &TaskState{
-			taskMap: make(map[string]*TaskItem, len(state.taskMap)-1),
+		key := []byte(a.id)
+		items, _, exists := state.items.Delete(key)
+		if !exists {
+			panic("task dit not existed")
 		}
-		for k, v := range state.taskMap {
-			if k == a.id {
-				continue
-			}
-			nextState.taskMap[k] = v
+		return &TaskState{
+			items: items,
 		}
-		return nextState
 	}
 
 	return state
