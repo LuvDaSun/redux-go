@@ -11,7 +11,7 @@ CreateToggleMiddleware transforms the toggle action
 */
 func CreateToggleMiddleware() redux.MiddlewareFactory {
 
-	return func(api *redux.MiddlewareAPI) redux.Middleware {
+	return func(api redux.StoreInterface) redux.Middleware {
 		return func(next redux.Dispatch) redux.Dispatch {
 			var mutex = &sync.Mutex{}
 

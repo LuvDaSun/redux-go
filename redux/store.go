@@ -34,6 +34,14 @@ type Store struct {
 }
 
 /*
+StoreInterface defines methods
+*/
+type StoreInterface interface {
+	GetState() State
+	Dispatch(Action)
+}
+
+/*
 CreateStore creates a store
 */
 func CreateStore(initalState State, reducer Reducer) *Store {
