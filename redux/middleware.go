@@ -8,7 +8,7 @@ type MiddlewareFactory func(StoreInterface) Middleware
 /*
 Middleware is the actual middleware
 */
-type Middleware func(Dispatch) Dispatch
+type Middleware func(Dispatcher) Dispatcher
 
 /*
 ApplyMiddleware applies middleware to a store
@@ -20,11 +20,11 @@ func (store *Store) ApplyMiddleware(middlewareFactories ...MiddlewareFactory) *S
 		middlewares[index] = middleware
 	}
 
-	dispatchNext := store.dispatchHandler
+	dispatchNext := store.dispatcher
 	for _, middleware := range middlewares {
 		dispatchNext = middleware(dispatchNext)
 	}
-	store.dispatchHandler = dispatchNext
+	store.dispatcher = dispatchNext
 
 	return store
 }

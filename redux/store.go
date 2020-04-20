@@ -5,6 +5,11 @@ import (
 )
 
 /*
+State is the state of a redux store
+*/
+type State interface{}
+
+/*
 Action is a value that is dispatched to the redux store
 */
 type Action interface{}
@@ -15,22 +20,17 @@ Reducer will reduce a state and an action to a next state
 type Reducer func(State, Action) State
 
 /*
-State is the state of a redux store
+Dispatcher dispatches action
 */
-type State interface{}
-
-/*
-Dispatch dispatches action
-*/
-type Dispatch func(Action)
+type Dispatcher func(Action)
 
 /*
 Store is a redux store
 */
 type Store struct {
-	state           State
-	dispatchHandler Dispatch
-	stateMutex      *sync.RWMutex
+	state      State
+	dispatcher Dispatcher
+	stateMutex *sync.RWMutex
 }
 
 /*
@@ -51,7 +51,7 @@ func CreateStore(initalState State, reducer Reducer) *Store {
 		&sync.RWMutex{},
 	}
 
-	store.dispatchHandler = func(action Action) {
+	store.dispatcher = func(action Action) {
 		store.stateMutex.Lock()
 		defer store.stateMutex.Unlock()
 
@@ -65,7 +65,7 @@ func CreateStore(initalState State, reducer Reducer) *Store {
 Dispatch dispatches action
 */
 func (store *Store) Dispatch(action Action) {
-	store.dispatchHandler(action)
+	store.dispatcher(action)
 }
 
 /*
