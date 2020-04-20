@@ -4,26 +4,25 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/LuvDaSun/redux-go/redux"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test(test *testing.T) {
-	reducer := func(state redux.State, action redux.Action) redux.State {
-		return ReduceApplicationState(state.(*ApplicationState), action)
-	}
+	const count1 = 100
+	const count2 = 1000
 
-	store := redux.CreateStore(InitialApplicationState, reducer)
+	store := CreateApplicationStore()
+	store.Dispatch(nil)
 
 	state1 := store.GetState().(*ApplicationState)
 
-	store.Dispatch(IncrementAction{})
+	store.Dispatch(&IncrementAction{})
 	state2 := store.GetState().(*ApplicationState)
 
-	store.Dispatch(IncrementAction{})
+	store.Dispatch(&IncrementAction{})
 	state3 := store.GetState().(*ApplicationState)
 
-	store.Dispatch(DecrementAction{})
+	store.Dispatch(&DecrementAction{})
 	state4 := store.GetState().(*ApplicationState)
 
 	assert.Equal(test, 0, state1.SelectCounter())
@@ -34,19 +33,19 @@ func Test(test *testing.T) {
 	var wg sync.WaitGroup
 
 	job := func() {
-		for range [1000]int{} {
-			store.Dispatch(IncrementAction{})
+		for range [count1]int{} {
+			store.Dispatch(&IncrementAction{})
 		}
 		wg.Done()
 	}
 
-	wg.Add(1000)
-	for range [1000]int{} {
+	wg.Add(count2)
+	for range [count2]int{} {
 		go job()
 	}
 
 	wg.Wait()
 
 	state5 := store.GetState().(*ApplicationState)
-	assert.Equal(test, 1+1000*1000, state5.SelectCounter())
+	assert.Equal(test, 1+count1*count2, state5.SelectCounter())
 }

@@ -9,24 +9,25 @@ import (
 /*
 CreateToggleMiddleware transforms the toggle action
 */
-func CreateToggleMiddleware() redux.Middleware {
-	var mutex = &sync.Mutex{}
+func CreateToggleMiddleware() redux.MiddlewareFactory {
 
-	return func(getState redux.GetState, dispatch redux.Dispatch) redux.Chain {
+	return func(store redux.StoreInterface) redux.Middleware {
 		return func(next redux.Dispatch) redux.Dispatch {
-			return func(action redux.Action) {
-				mutex.Lock()
-				defer mutex.Unlock()
+			var mutex = &sync.Mutex{}
 
+			return func(action redux.Action) {
 				next(action)
 
 				switch action.(type) {
-				case ToggleAction:
-					state := getState().(*ApplicationState)
+				case *ToggleAction:
+					mutex.Lock()
+					defer mutex.Unlock()
+
+					state := store.GetState().(*ApplicationState)
 					if state.SelectLightIsOn() {
-						dispatch(SwitchOffAction{})
+						store.Dispatch(&SwitchOffAction{})
 					} else {
-						dispatch(SwitchOnAction{})
+						store.Dispatch(&SwitchOnAction{})
 					}
 				}
 

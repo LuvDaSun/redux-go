@@ -4,27 +4,26 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/LuvDaSun/redux-go/redux"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test(test *testing.T) {
-	reducer := func(state redux.State, action redux.Action) redux.State {
-		return ReduceApplicationState(state.(*ApplicationState), action)
-	}
+	const count1 = 10
+	const count2 = 100
+	const count3 = 1000
 
-	store := redux.CreateStore(InitialApplicationState, reducer).
-		ApplyMiddleware(CreateToggleMiddleware())
+	store := CreateApplicationStore()
+	store.Dispatch(nil)
 
 	state1 := store.GetState().(*ApplicationState)
 
-	store.Dispatch(SwitchOnAction{})
+	store.Dispatch(&SwitchOnAction{})
 	state2 := store.GetState().(*ApplicationState)
 
-	store.Dispatch(SwitchOffAction{})
+	store.Dispatch(&SwitchOffAction{})
 	state3 := store.GetState().(*ApplicationState)
 
-	store.Dispatch(ToggleAction{})
+	store.Dispatch(&ToggleAction{})
 	state4 := store.GetState().(*ApplicationState)
 
 	assert.Equal(test, false, state1.SelectLightIsOn())
@@ -32,18 +31,18 @@ func Test(test *testing.T) {
 	assert.Equal(test, false, state3.SelectLightIsOn())
 	assert.Equal(test, true, state4.SelectLightIsOn())
 
-	for range [100]int{} {
+	for range [count1]int{} {
 		var wg sync.WaitGroup
 
 		job := func() {
-			for range [100]int{} {
-				store.Dispatch(ToggleAction{})
+			for range [count2]int{} {
+				store.Dispatch(&ToggleAction{})
 			}
 			wg.Done()
 		}
 
-		wg.Add(100)
-		for range [100]int{} {
+		wg.Add(count3)
+		for range [count3]int{} {
 			go job()
 		}
 
