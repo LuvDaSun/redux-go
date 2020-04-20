@@ -57,14 +57,14 @@ func (store *Store) ApplyMiddleware(middlewareFactories ...MiddlewareFactory) *S
 
 	dispatchHandler := store.dispatchHandler
 	dispatchNext := func(action Action) {
-		dispatchHandler(store, action)
+		dispatchHandler(action)
 	}
 
 	for _, middleware := range middlewares {
 		dispatchNext = middleware(dispatchNext)
 	}
 
-	nextDispatchHandler := func(store *Store, action Action) {
+	nextDispatchHandler := func(action Action) {
 		dispatchNext(action)
 	}
 	store.dispatchHandler = nextDispatchHandler

@@ -23,7 +23,6 @@ type State interface{}
 DispatchHandler will handle every dispatch
 */
 type DispatchHandler func(
-	store *Store,
 	action Action,
 )
 
@@ -40,25 +39,27 @@ type Store struct {
 CreateStore creates a store
 */
 func CreateStore(initalState State, reducer Reducer) *Store {
-	dispatchHandler := func(store *Store, action Action) {
+	store := &Store{
+		initalState,
+		nil,
+		&sync.RWMutex{},
+	}
+
+	store.dispatchHandler = func(action Action) {
 		store.stateMutex.Lock()
 		defer store.stateMutex.Unlock()
 
 		store.state = reducer(store.state, action)
 	}
 
-	return &Store{
-		initalState,
-		dispatchHandler,
-		&sync.RWMutex{},
-	}
+	return store
 }
 
 /*
 Dispatch dispatches action
 */
 func (store *Store) Dispatch(action Action) {
-	store.dispatchHandler(store, action)
+	store.dispatchHandler(action)
 }
 
 /*
