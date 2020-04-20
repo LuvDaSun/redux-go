@@ -1,9 +1,9 @@
 package redux
 
 /*
-Middleware is the middleware API :-)
+MiddlewareFactory is the middleware factory :-)
 */
-type Middleware func(GetState, Dispatch) Chain
+type MiddlewareFactory func(GetState, Dispatch) Middleware
 
 /*
 GetState gets state
@@ -16,14 +16,14 @@ Dispatch dispatches action
 type Dispatch func(Action)
 
 /*
-Chain dispatches action
+Middleware is the actual middleware
 */
-type Chain func(Dispatch) Dispatch
+type Middleware func(Dispatch) Dispatch
 
 /*
 ApplyMiddleware applies middleware to a store
 */
-func (store *Store) ApplyMiddleware(middlewares ...Middleware) *Store {
+func (store *Store) ApplyMiddleware(middlewareFactories ...MiddlewareFactory) *Store {
 	dispatchHandler := store.dispatchHandler
 
 	getState := func() State {
@@ -34,15 +34,15 @@ func (store *Store) ApplyMiddleware(middlewares ...Middleware) *Store {
 		dispatchHandler(store, action)
 	}
 
-	chains := make([]Chain, len(middlewares))
-	for index, middleware := range middlewares {
-		chain := middleware(getState, dispatch)
-		chains[index] = chain
+	middlewares := make([]Middleware, len(middlewareFactories))
+	for index, middlewareFactory := range middlewareFactories {
+		middleware := middlewareFactory(getState, dispatch)
+		middlewares[index] = middleware
 	}
 
 	dispatchNext := dispatch
-	for _, chain := range chains {
-		dispatchNext = chain(dispatchNext)
+	for _, middleware := range middlewares {
+		dispatchNext = middleware(dispatchNext)
 	}
 
 	nextDispatchHandler := func(store *Store, action Action) {
