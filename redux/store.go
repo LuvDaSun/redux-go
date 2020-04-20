@@ -20,18 +20,16 @@ State is the state of a redux store
 type State interface{}
 
 /*
-DispatchHandler will handle every dispatch
+Dispatch dispatches action
 */
-type DispatchHandler func(
-	action Action,
-)
+type Dispatch func(Action)
 
 /*
 Store is a redux store
 */
 type Store struct {
 	state           State
-	dispatchHandler DispatchHandler
+	dispatchHandler Dispatch
 	stateMutex      *sync.RWMutex
 }
 

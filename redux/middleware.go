@@ -18,11 +18,6 @@ GetState gets state
 type GetState func() State
 
 /*
-Dispatch dispatches action
-*/
-type Dispatch func(Action)
-
-/*
 Middleware is the actual middleware
 */
 type Middleware func(Dispatch) Dispatch
@@ -55,10 +50,7 @@ func (store *Store) ApplyMiddleware(middlewareFactories ...MiddlewareFactory) *S
 		middlewares[index] = middleware
 	}
 
-	dispatchHandler := store.dispatchHandler
-	dispatchNext := func(action Action) {
-		dispatchHandler(action)
-	}
+	dispatchNext := store.dispatchHandler
 
 	for _, middleware := range middlewares {
 		dispatchNext = middleware(dispatchNext)
