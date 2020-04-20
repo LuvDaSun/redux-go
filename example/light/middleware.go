@@ -11,7 +11,7 @@ CreateToggleMiddleware transforms the toggle action
 */
 func CreateToggleMiddleware() redux.MiddlewareFactory {
 
-	return func(api redux.StoreInterface) redux.Middleware {
+	return func(store redux.StoreInterface) redux.Middleware {
 		return func(next redux.Dispatch) redux.Dispatch {
 			var mutex = &sync.Mutex{}
 
@@ -23,11 +23,11 @@ func CreateToggleMiddleware() redux.MiddlewareFactory {
 					mutex.Lock()
 					defer mutex.Unlock()
 
-					state := api.GetState().(*ApplicationState)
+					state := store.GetState().(*ApplicationState)
 					if state.SelectLightIsOn() {
-						api.Dispatch(&SwitchOffAction{})
+						store.Dispatch(&SwitchOffAction{})
 					} else {
-						api.Dispatch(&SwitchOnAction{})
+						store.Dispatch(&SwitchOnAction{})
 					}
 				}
 
