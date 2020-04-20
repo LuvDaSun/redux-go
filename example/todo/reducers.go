@@ -63,6 +63,7 @@ func ReduceTaskState(state *TaskState, action redux.Action) *TaskState {
 		}
 		items, _, exists := state.items.Insert(key, item)
 		if exists {
+			println(a.id)
 			panic("task existed")
 		}
 		return &TaskState{

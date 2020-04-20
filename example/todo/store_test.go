@@ -1,6 +1,7 @@
 package todo
 
 import (
+	"fmt"
 	"sync"
 	"testing"
 
@@ -8,7 +9,7 @@ import (
 )
 
 func Test(test *testing.T) {
-	const count = 1000
+	const count = 100000
 
 	store := CreateApplicationStore()
 	store.Dispatch(nil)
@@ -19,7 +20,7 @@ func Test(test *testing.T) {
 		var wg sync.WaitGroup
 		job := func(index int) {
 			store.Dispatch(&AddTaskItemAction{
-				id:   string(index),
+				id:   fmt.Sprintf("%d", index),
 				name: string(index),
 			})
 			wg.Done()
@@ -36,7 +37,7 @@ func Test(test *testing.T) {
 		var wg sync.WaitGroup
 		job := func(index int) {
 			store.Dispatch(&CompleteTaskItemAction{
-				id: string(index),
+				id: fmt.Sprintf("%d", index),
 			})
 			wg.Done()
 		}
@@ -52,7 +53,7 @@ func Test(test *testing.T) {
 		var wg sync.WaitGroup
 		job := func(index int) {
 			store.Dispatch(&RemoveTaskItemAction{
-				id: string(index),
+				id: fmt.Sprintf("%d", index),
 			})
 			wg.Done()
 		}
