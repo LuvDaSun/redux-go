@@ -9,7 +9,7 @@ import (
 )
 
 func Test(test *testing.T) {
-	const count = 10000
+	const count = 1000
 
 	store := CreateApplicationStore()
 	store.Dispatch(nil)
