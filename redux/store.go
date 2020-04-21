@@ -28,9 +28,12 @@ type Dispatcher func(Action)
 Store is a redux store
 */
 type Store struct {
-	state      State
-	dispatcher Dispatcher
-	stateMutex *sync.RWMutex
+	stateMutex    *sync.RWMutex
+	state         State
+	listenerMutex *sync.Mutex
+	listenerIndex int
+	listeners     map[int]Listener
+	dispatcher    Dispatcher
 }
 
 /*
@@ -46,9 +49,12 @@ CreateStore creates a store
 */
 func CreateStore(initalState State, reducer Reducer) *Store {
 	store := &Store{
-		initalState,
-		nil,
 		&sync.RWMutex{},
+		initalState,
+		&sync.Mutex{},
+		0,
+		make(map[int]Listener, 0),
+		nil,
 	}
 
 	store.dispatcher = func(action Action) {
@@ -56,6 +62,14 @@ func CreateStore(initalState State, reducer Reducer) *Store {
 		defer store.stateMutex.Unlock()
 
 		store.state = reducer(store.state, action)
+
+		store.listenerMutex.Lock()
+		defer store.listenerMutex.Unlock()
+
+		for _, listener := range store.listeners {
+			listener(store.state)
+		}
+
 	}
 
 	return store
@@ -76,4 +90,35 @@ func (store *Store) GetState() State {
 	defer store.stateMutex.RUnlock()
 
 	return store.state
+}
+
+/*
+Listener function that listens to a store
+*/
+type Listener func(state State)
+
+/*
+Unsubscribe unsibscribed the listener
+*/
+type Unsubscribe func()
+
+/*
+Subscribe subscribes to the stores state
+*/
+func (store *Store) Subscribe(listener Listener) Unsubscribe {
+	store.listenerMutex.Lock()
+	defer store.listenerMutex.Unlock()
+
+	store.listenerIndex++
+	listenerIndex := store.listenerIndex
+
+	store.listeners[listenerIndex] = listener
+	unsubscribe := func() {
+		store.listenerMutex.Lock()
+		defer store.listenerMutex.Unlock()
+
+		delete(store.listeners, listenerIndex)
+	}
+
+	return unsubscribe
 }
