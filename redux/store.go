@@ -30,11 +30,10 @@ Store is a redux store
 type Store struct {
 	stateMutex    *sync.RWMutex
 	state         State
-	dispatchMutex *sync.Mutex
-	dispatcher    Dispatcher
 	listenerMutex *sync.Mutex
 	listenerIndex int
 	listeners     map[int]Listener
+	dispatcher    Dispatcher
 }
 
 /*
@@ -53,10 +52,9 @@ func CreateStore(initalState State, reducer Reducer) *Store {
 		&sync.RWMutex{},
 		initalState,
 		&sync.Mutex{},
-		nil,
-		&sync.Mutex{},
 		0,
 		make(map[int]Listener, 0),
+		nil,
 	}
 
 	store.dispatcher = func(action Action) {
@@ -81,9 +79,6 @@ func CreateStore(initalState State, reducer Reducer) *Store {
 Dispatch dispatches action
 */
 func (store *Store) Dispatch(action Action) {
-	store.dispatchMutex.Lock()
-	defer store.dispatchMutex.Unlock()
-
 	store.dispatcher(action)
 }
 
