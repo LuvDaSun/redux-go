@@ -37,14 +37,6 @@ type Store struct {
 }
 
 /*
-StoreInterface defines methods
-*/
-type StoreInterface interface {
-	GetState() State
-	Dispatch(Action)
-}
-
-/*
 CreateStore creates a store
 */
 func CreateStore(initalState State, reducer Reducer) *Store {
@@ -83,7 +75,7 @@ func (store *Store) Dispatch(action Action) {
 }
 
 /*
-GetState gets snapshot of state
+GetState gets current of state
 */
 func (store *Store) GetState() State {
 	store.stateMutex.RLock()
