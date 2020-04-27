@@ -20,46 +20,41 @@ Reducer will reduce a state and an action to a next state
 type Reducer func(State, Action) State
 
 /*
-Dispatcher dispatches action
+Dispatch dispatches action
 */
-type Dispatcher func(Action)
+type Dispatch func(Action)
 
 /*
 Store is a redux store
 */
 type Store struct {
+	DispatchChannel chan<- Action
+
 	stateMutex    *sync.RWMutex
 	state         State
-	dispatchMutex *sync.Mutex
-	dispatcher    Dispatcher
 	listenerMutex *sync.Mutex
 	listenerIndex int
 	listeners     map[int]Listener
-}
-
-/*
-StoreInterface defines methods
-*/
-type StoreInterface interface {
-	GetState() State
-	Dispatch(Action)
+	dispatch      Dispatch
 }
 
 /*
 CreateStore creates a store
 */
 func CreateStore(initalState State, reducer Reducer) *Store {
+	dispatchChannel := make(chan Action)
+
 	store := &Store{
+		dispatchChannel,
 		&sync.RWMutex{},
 		initalState,
 		&sync.Mutex{},
-		nil,
-		&sync.Mutex{},
 		0,
 		make(map[int]Listener, 0),
+		nil,
 	}
 
-	store.dispatcher = func(action Action) {
+	store.dispatch = func(action Action) {
 		store.stateMutex.Lock()
 		defer store.stateMutex.Unlock()
 
@@ -74,21 +69,13 @@ func CreateStore(initalState State, reducer Reducer) *Store {
 
 	}
 
+	go store.dispatchLoop(dispatchChannel)
+
 	return store
 }
 
 /*
-Dispatch dispatches action
-*/
-func (store *Store) Dispatch(action Action) {
-	store.dispatchMutex.Lock()
-	defer store.dispatchMutex.Unlock()
-
-	store.dispatcher(action)
-}
-
-/*
-GetState gets snapshot of state
+GetState gets current of state
 */
 func (store *Store) GetState() State {
 	store.stateMutex.RLock()
@@ -126,4 +113,10 @@ func (store *Store) Subscribe(listener Listener) Unsubscribe {
 	}
 
 	return unsubscribe
+}
+
+func (store *Store) dispatchLoop(dispatchChannel <-chan Action) {
+	for action := range dispatchChannel {
+		store.dispatch(action)
+	}
 }
