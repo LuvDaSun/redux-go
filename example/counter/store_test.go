@@ -4,6 +4,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/LuvDaSun/redux-go/redux"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,18 +13,22 @@ func Test(test *testing.T) {
 	const count2 = 1000
 
 	store := CreateApplicationStore()
-	store.Dispatch(nil)
+	stateChannel := make(chan *ApplicationState)
+	unsubscribe := store.Subscribe(func(state redux.State) {
+		stateChannel <- state.(*ApplicationState)
+	})
+	defer unsubscribe()
 
 	state1 := store.GetState().(*ApplicationState)
 
-	store.Dispatch(&IncrementAction{})
-	state2 := store.GetState().(*ApplicationState)
+	store.DispatchChannel <- &IncrementAction{}
+	state2 := <-stateChannel
 
-	store.Dispatch(&IncrementAction{})
-	state3 := store.GetState().(*ApplicationState)
+	store.DispatchChannel <- &IncrementAction{}
+	state3 := <-stateChannel
 
-	store.Dispatch(&DecrementAction{})
-	state4 := store.GetState().(*ApplicationState)
+	store.DispatchChannel <- &DecrementAction{}
+	state4 := <-stateChannel
 
 	assert.Equal(test, 0, state1.SelectCounter())
 	assert.Equal(test, 1, state2.SelectCounter())
@@ -34,7 +39,8 @@ func Test(test *testing.T) {
 
 	job := func() {
 		for range [count1]int{} {
-			store.Dispatch(&IncrementAction{})
+			store.DispatchChannel <- &IncrementAction{}
+			<-stateChannel
 		}
 		wg.Done()
 	}

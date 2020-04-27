@@ -5,6 +5,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/LuvDaSun/redux-go/redux"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,17 +13,22 @@ func Test(test *testing.T) {
 	const count = 1000
 
 	store := CreateApplicationStore()
-	store.Dispatch(nil)
+	stateChannel := make(chan *ApplicationState)
+	unsubscribe := store.Subscribe(func(state redux.State) {
+		stateChannel <- state.(*ApplicationState)
+	})
+	defer unsubscribe()
 
 	state1 := store.GetState().(*ApplicationState)
 
 	{
 		var wg sync.WaitGroup
 		job := func(index int) {
-			store.Dispatch(&AddTaskItemAction{
+			store.DispatchChannel <- &AddTaskItemAction{
 				id:   fmt.Sprintf("%d", index),
 				name: string(index),
-			})
+			}
+			<-stateChannel
 			wg.Done()
 		}
 		wg.Add(count)
@@ -36,9 +42,10 @@ func Test(test *testing.T) {
 	{
 		var wg sync.WaitGroup
 		job := func(index int) {
-			store.Dispatch(&CompleteTaskItemAction{
+			store.DispatchChannel <- &CompleteTaskItemAction{
 				id: fmt.Sprintf("%d", index),
-			})
+			}
+			<-stateChannel
 			wg.Done()
 		}
 		wg.Add(count)
@@ -52,9 +59,10 @@ func Test(test *testing.T) {
 	{
 		var wg sync.WaitGroup
 		job := func(index int) {
-			store.Dispatch(&RemoveTaskItemAction{
+			store.DispatchChannel <- &RemoveTaskItemAction{
 				id: fmt.Sprintf("%d", index),
-			})
+			}
+			<-stateChannel
 			wg.Done()
 		}
 		wg.Add(count)

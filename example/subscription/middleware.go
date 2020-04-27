@@ -15,7 +15,7 @@ func CreateSubscriptionMiddleware(ctx context.Context, interval time.Duration) r
 	return func(store redux.StoreInterface) redux.Middleware {
 		cancels := make(map[int]context.CancelFunc)
 
-		dispatchEventAction := func(subscriptionCtx context.Context, id int) {
+		subscriptionLoop := func(subscriptionCtx context.Context, id int) {
 			ticker := time.NewTicker(interval)
 			defer ticker.Stop()
 
@@ -25,16 +25,16 @@ func CreateSubscriptionMiddleware(ctx context.Context, interval time.Duration) r
 					return
 
 				case <-ticker.C:
-					store.Dispatch(&EventAction{
+					store.DispatchChannel <- &EventAction{
 						ID: id,
-					})
+					}
 				}
 			}
 		}
 		handleStartAction := func(id int) {
 			subscriptionCtx, cancel := context.WithCancel(ctx)
 			cancels[id] = cancel
-			go dispatchEventAction(subscriptionCtx, id)
+			go subscriptionLoop(subscriptionCtx, id)
 
 		}
 		handleStopAction := func(id int) {
@@ -43,7 +43,7 @@ func CreateSubscriptionMiddleware(ctx context.Context, interval time.Duration) r
 			cancel()
 		}
 
-		return func(next redux.Dispatcher) redux.Dispatcher {
+		return func(next redux.Dispatch) redux.Dispatch {
 
 			return func(action redux.Action) {
 				switch action := action.(type) {

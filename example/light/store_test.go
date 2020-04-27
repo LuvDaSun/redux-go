@@ -4,27 +4,33 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/LuvDaSun/redux-go/redux"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test(test *testing.T) {
-	const count1 = 10
-	const count2 = 100
-	const count3 = 1000
+	const count1 = 8
+	const count2 = 16
+	const count3 = 32
 
 	store := CreateApplicationStore()
-	store.Dispatch(nil)
+	stateChannel := make(chan *ApplicationState)
+	unsubscribe := store.Subscribe(func(state redux.State) {
+		stateChannel <- state.(*ApplicationState)
+	})
+	defer unsubscribe()
 
 	state1 := store.GetState().(*ApplicationState)
 
-	store.Dispatch(&SwitchOnAction{})
-	state2 := store.GetState().(*ApplicationState)
+	store.DispatchChannel <- &SwitchOnAction{}
+	state2 := <-stateChannel
 
-	store.Dispatch(&SwitchOffAction{})
-	state3 := store.GetState().(*ApplicationState)
+	store.DispatchChannel <- &SwitchOffAction{}
+	state3 := <-stateChannel
 
-	store.Dispatch(&ToggleAction{})
-	state4 := store.GetState().(*ApplicationState)
+	store.DispatchChannel <- &ToggleAction{}
+	<-stateChannel
+	state4 := <-stateChannel
 
 	assert.Equal(test, false, state1.SelectLightIsOn())
 	assert.Equal(test, true, state2.SelectLightIsOn())
@@ -36,7 +42,9 @@ func Test(test *testing.T) {
 
 		job := func() {
 			for range [count2]int{} {
-				store.Dispatch(&ToggleAction{})
+				store.DispatchChannel <- &ToggleAction{}
+				<-stateChannel
+				<-stateChannel
 			}
 			wg.Done()
 		}

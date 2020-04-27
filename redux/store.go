@@ -20,27 +20,32 @@ Reducer will reduce a state and an action to a next state
 type Reducer func(State, Action) State
 
 /*
-Dispatcher dispatches action
+Dispatch dispatches action
 */
-type Dispatcher func(Action)
+type Dispatch func(Action)
 
 /*
 Store is a redux store
 */
 type Store struct {
+	DispatchChannel chan<- Action
+
 	stateMutex    *sync.RWMutex
 	state         State
 	listenerMutex *sync.Mutex
 	listenerIndex int
 	listeners     map[int]Listener
-	dispatcher    Dispatcher
+	dispatch      Dispatch
 }
 
 /*
 CreateStore creates a store
 */
 func CreateStore(initalState State, reducer Reducer) *Store {
+	dispatchChannel := make(chan Action)
+
 	store := &Store{
+		dispatchChannel,
 		&sync.RWMutex{},
 		initalState,
 		&sync.Mutex{},
@@ -49,7 +54,7 @@ func CreateStore(initalState State, reducer Reducer) *Store {
 		nil,
 	}
 
-	store.dispatcher = func(action Action) {
+	store.dispatch = func(action Action) {
 		store.stateMutex.Lock()
 		defer store.stateMutex.Unlock()
 
@@ -64,14 +69,9 @@ func CreateStore(initalState State, reducer Reducer) *Store {
 
 	}
 
-	return store
-}
+	go store.dispatchLoop(dispatchChannel)
 
-/*
-Dispatch dispatches action
-*/
-func (store *Store) Dispatch(action Action) {
-	store.dispatcher(action)
+	return store
 }
 
 /*
@@ -113,4 +113,10 @@ func (store *Store) Subscribe(listener Listener) Unsubscribe {
 	}
 
 	return unsubscribe
+}
+
+func (store *Store) dispatchLoop(dispatchChannel <-chan Action) {
+	for action := range dispatchChannel {
+		store.dispatch(action)
+	}
 }
